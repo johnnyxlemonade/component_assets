@@ -4,8 +4,8 @@ namespace Lemonade\Assets\Compiler;
 
 
 use Lemonade\Assets\Exception\FileImportException;
-use MatthiasMullie\PathConverter\ConverterInterface;
-use MatthiasMullie\PathConverter\Converter;
+use Lemonade\Assets\Convertor\ConverterInterface;
+use Lemonade\Assets\Convertor\Converter;
 
 /**
  * CSS minifier

@@ -1,8 +1,6 @@
 <?php
 
 namespace Lemonade\Assets\Compiler;
-
-
 use Lemonade\Assets\Exception\CompilerError;
 
 /**
