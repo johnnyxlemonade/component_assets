@@ -1,0 +1,26 @@
+{
+ "name": "lemonade/component_assets",
+ "license": "MIT",
+ "authors": [
+   {
+    "name": "Honza Mudrak",
+    "email": "honza@core1.agency",
+    "homepage": "https://core1.agency"
+   }
+ ],        
+ "autoload": { 
+   "psr-4": {
+     "Lemonade\\Assets\\": "src/"
+   }
+ }, 
+ "require": {
+   "php": ">=7.2 <8.3",
+   "matthiasmullie/path-converter": "^1.1",
+   "nette/utils": "^3.2",
+   "nette/finder": "^2.5"   
+ }
+}
+
+
+
+
