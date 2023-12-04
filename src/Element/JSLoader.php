@@ -1,10 +1,15 @@
 <?php declare(strict_types = 1);
 
 namespace Lemonade\Assets\Element;
+use function str_replace;
 
-final class JSLoader extends ElementLoader {
-    
-    private $pattern = <<<patternJs
+final class JSLoader extends ElementLoader
+{
+
+    /**
+     * @var string
+     */
+    private static string $pattern = <<<patternJs
     
      <script>
      (function(c,o,r,e){
@@ -17,15 +22,15 @@ final class JSLoader extends ElementLoader {
     </script>
 
 patternJs;
-    
+
     /**
-     * 
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Element\ElementLoader::getElement()
+     * @param $source
+     * @return string
      */
-    public function getElement($source) {
+    public function getElement($source): string
+    {
         
-        return \str_replace("{source}", $source, $this->pattern);
+        return (string) str_replace(search: "{source}", replace: $source, subject: self::$pattern);
     }
     
     

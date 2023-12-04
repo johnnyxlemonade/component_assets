@@ -10,31 +10,26 @@ final class CssLoader extends ElementLoader {
      *
      * @var string
      */
-    private $media;
-    
-    /**
-     * 
-     * @var string
-     */
-    private $title;
+    private string $media = "";
     
     /**
      *
      * @var string
      */
-    private $type = "text/css";
+    private string $type = "text/css";
     
     /**
      *
      * @var bool
      */
-    private $alternate = FALSE;
+    private bool $alternate = false;
     
     /**
      * Media
      * @return string
      */
-    public function getMedia() {
+    public function getMedia(): string
+    {
         
         return $this->media;
     }
@@ -43,25 +38,18 @@ final class CssLoader extends ElementLoader {
      * Typ
      * @return string
      */
-    public function getType() {
+    public function getType(): string
+    {
         
         return $this->type;
     }
-    
-    /**
-     * Title
-     * @return string
-     */
-    public function getTitle() {
-        
-        return $this->title;
-    }
-    
+
     /**
      * Alternate
      * @return bool
      */
-    public function isAlternate() {
+    public function isAlternate(): bool
+    {
         
         return $this->alternate;
     }
@@ -71,7 +59,8 @@ final class CssLoader extends ElementLoader {
      * @param string $media
      * @return CssLoader
      */
-    public function setMedia($media) {
+    public function setMedia($media): self
+    {
         
         $this->media = $media;
         
@@ -83,47 +72,37 @@ final class CssLoader extends ElementLoader {
      * @param string $type
      * @return CssLoader
      */
-    public function setType($type) {
+    public function setType($type): self
+    {
         
         $this->type = $type;
         
         return $this;
     }
-    
-    /**
-     * Set title
-     * @param string $title
-     * @return CssLoader
-     */
-    public function setTitle($title) {
-        
-        $this->title = $title;
-        
-        return $this;
-    }
-    
+
     /**
      * Set alternate
      * @param bool $alternate
      * @return CssLoader
      */
-    public function setAlternate($alternate) {
+    public function setAlternate($alternate): self
+    {
         
         $this->alternate = $alternate;
         
         return $this;
     }
-    
+
     /**
-     * 
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Element\ElementLoader::getElement()
+     * @param $source
+     * @return Html
      */
-    public function getElement($source) {
+    public function getElement($source): Html
+    {
         
         $alternate = ($this->alternate ? " alternate" : "");
         
-        return Html::el("link")->rel("stylesheet".$alternate)->media($this->media)->title($this->title)->href($source);
+        return Html::el(name: "link")->rel("stylesheet" . $alternate)->media($this->media)->href($source);
     }
     
 }

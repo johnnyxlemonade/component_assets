@@ -3,8 +3,11 @@
 namespace Lemonade\Assets\Element;
 
 use Lemonade\Assets\Compiler;
+use Nette\Utils\Html;
+use function ltrim;
 
-abstract class ElementLoader {
+abstract class ElementLoader
+{
     
     /**
      * Compiler
@@ -17,8 +20,7 @@ abstract class ElementLoader {
      * @var string
      */
     private $tempPath;
-    
-    
+
     /**
      * Constructor
      * @param Compiler $compiler
@@ -65,25 +67,27 @@ abstract class ElementLoader {
         
         return $this->tempPath;
     }
-    
 
     /**
      * Html element
-     * @param string $source
-     * @return \Nette\Utils\Html
+     * @param $source
+     * @return Html|string
      */
-    abstract public function getElement($source);
-    
+    abstract public function getElement($source): Html|string;
+
     /**
      * Generovani
      * @return string
      */
-    public function render() {
+    public function render(): string
+    {
         
         foreach ($this->compiler->generate() as $file) {
             
-            return $this->getElement($this->getGeneratedFilePath($file)) . PHP_EOL;
+            return $this->getElement(source: $this->getGeneratedFilePath(file: $file)) . PHP_EOL;
         }
+
+        return "";
     }
         
     /**
@@ -91,8 +95,14 @@ abstract class ElementLoader {
      * @param string $file
      * @return string
      */
-    protected function getGeneratedFilePath($file) {
-        
-        return \ltrim($this->tempPath, ".") . "/" . $file->file;
+    protected function getGeneratedFilePath($file): string
+    {
+
+        if(function_exists(function: "base_url")) {
+
+            return base_url(uri: ltrim(string: $this->tempPath, characters: ".") . "/" . $file->file);
+        }
+
+        return ltrim(string: $this->tempPath, characters: ".") . "/" . $file->file;
     }
 }
