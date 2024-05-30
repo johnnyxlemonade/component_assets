@@ -1,113 +1,93 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace Lemonade\Assets;
 
 use Lemonade\Assets\Interfaces\NamingConventionInterface;
+use function count;
+use function implode;
+use function md5;
+use function pathinfo;
+use function substr;
 
-final class NameConvention implements NamingConventionInterface {
-    
+final class NameConvention implements NamingConventionInterface
+{
+
+
     /**
-     * Prefix
-     * @var string
-     */
-    private $prefix = "loader-";
-    
-    /**
-     * Suffix
-     * @var string
-     */
-    private $suffix = "";
-    
-    /**
-     * Css 
-     * @return \Lemonade\Assets\NameConvention
-     */
-    public static function createCssConvention() {
-        
-        $convention = new static();
-        $convention->setPrefix("loader-");
-        $convention->setSuffix(".css");
-        
-        return $convention;
-    }
-    
-    /**
-     * Js
-     * @return \Lemonade\Assets\NameConvention
-     */
-    public static function createJsConvention() {
-     
-        $convention = new static();
-        $convention->setPrefix("loader-");
-        $convention->setSuffix(".js");
-        
-        return $convention;
-    }
-    
-    
-    /**
-     * Vraci prefix
-     * @return string
-     */
-    public function getPrefix() {
-        
-        return $this->prefix;
-    }
-    
-    /**
-     * Nastavi prefix
      * @param string $prefix
-     */
-    public function setPrefix(string $prefix = null) {
-        
-        $this->prefix = (string) $prefix;
-    }
-    
-    
-    /**
-     * Vraci suffix
-     * @return string
-     */
-    public function getSuffix() {
-        return $this->suffix;
-    }
-    
-    /**
-     * Nastavi suffix
      * @param string $suffix
      */
-    public function setSuffix(string $suffix = null) {
-        
-        $this->suffix = (string) $suffix;
+    public function __construct(
+        protected readonly string $prefix,
+        protected readonly string $suffix)
+    {
+
     }
-    
-    
+
     /**
-     * 
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Interfaces\NamingConventionInterface::getFilename()
+     * Css
+     * @return NameConvention
      */
-    public function getFilename(array $files, Compiler $compiler) {
-        
-        $name = $this->createHash($files, $compiler);
-        
-        if (\count($files) === 1) {
-            
-            $name .= "-" . \pathinfo($files[0], PATHINFO_FILENAME);
-        }
-        
-        return $this->prefix . $name . $this->suffix;
+    public static function createCssConvention(): NameConvention
+    {
+
+        return new NameConvention(prefix: "loader-", suffix: ".css");
     }
-    
+
     /**
-     * Vytvoreni hash souboru
+     * Js
+     * @return NameConvention
+     */
+    public static function createJsConvention(): NameConvention
+    {
+
+        return new NameConvention(prefix: "loader-", suffix: ".js");
+    }
+
+    /**
+     * @return string
+     */
+    public function getPrefix(): string
+    {
+
+        return $this->prefix;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSuffix(): string
+    {
+        return $this->suffix;
+    }
+
+    /**
      * @param array $files
      * @param Compiler $compiler
      * @return string
      */
-    protected function createHash(array $files, Compiler $compiler) {
-        
-        return \substr(\md5(\implode("|", $files)), 0, 12) . "-" . \substr(\md5((string)$compiler->getLastModified()), 0, 12);
+    public function getFilename(array $files, Compiler $compiler): string
+    {
+
+        $name = $this->createHash(files: $files, compiler: $compiler);
+
+        if (count($files) === 1) {
+
+            $name .= "-" . pathinfo(path: $files[0], flags: PATHINFO_FILENAME);
+        }
+
+        return $this->prefix . $name . $this->suffix;
+    }
+
+    /**
+     * @param array $files
+     * @param Compiler $compiler
+     * @return string
+     */
+    protected function createHash(array $files, Compiler $compiler): string
+    {
+
+        return substr(md5(implode("|", $files)), 0, 12) . "-" . substr(md5((string) $compiler->getLastModified()), 0, 12);
     }
 }
     

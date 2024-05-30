@@ -1,17 +1,18 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace Lemonade\Assets\Interfaces;
 
 use Lemonade\Assets\Compiler;
 
-interface NamingConventionInterface {
-    
+interface NamingConventionInterface
+{
+
     /**
-     * Vraci nazev souboru
      * @param array $files
      * @param Compiler $compiler
+     * @return string
      */
-    public function getFilename(array $files, Compiler $compiler);
-    
+    public function getFilename(array $files, Compiler $compiler): string;
+
 }
 

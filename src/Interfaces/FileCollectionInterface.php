@@ -1,54 +1,55 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace Lemonade\Assets\Interfaces;
 
-interface FileCollectionInterface {
-    
+use SplFileInfo;
+use Traversable;
+
+interface FileCollectionInterface
+{
+
     /**
-     * Vraci root
      * @return string
      */
-    public function getRoot();    
-    
+    public function getRoot(): string;
+
     /**
-     * Vycistit vse
+     * @return void
      */
-    public function clear();
-    
+    public function clear(): void;
+
     /**
-     * Vraci soubory
+     * @return mixed
+     */
+    public function getFiles(): array;
+
+    /**
+     * @param iterable<SplFileInfo> $files
+     * @return void
+     */
+    public function addWatchFiles(iterable $files): void;
+
+    /**
+     * @param SplFileInfo $file
+     * @return void
+     */
+    public function addWatchFile(SplFileInfo $file): void;
+
+    /**
      * @return array
      */
-    public function getFiles();
-    
+    public function getWatchFiles(): array;
+
     /**
-     * Pridat sledovany soubor
      * @param string $file
+     * @return void
      */
-    public function addWatchFile($file);
-    
+    public function addFile(string $file): void;
+
     /**
-     * Pridat sledovane soubory
-     * @param array|\Traversable $files
-     */
-    public function addWatchFiles($files);    
-    
-    /**
-     * Vraci sledovene soubory
-     * @return array
-     */
-    public function getWatchFiles();
-    
-    /**
-     * Pridat soubor 
-     * @param string $file
-     */
-    public function addFile(string $file);
-    
-    /**
-     * Pridat soubory
      * @param array $files
+     * @return void
      */
-    public function addFiles(array $files = []);
+    public function addFiles(array $files = []): void;
 
 }

@@ -1,256 +1,192 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace Lemonade\Assets;
 
+use Lemonade\Assets\Exception\InvalidArgumentException;
 use Lemonade\Assets\Interfaces\FileCollectionInterface;
 use Lemonade\Assets\Interfaces\NamingConventionInterface;
-use Lemonade\Assets\Exception\InvalidArgumentException;
+use StdClass;
 
-final class Compiler {
-    
+final class Compiler
+{
+
     /**
-     * Vystupni adresar
      * @var string
      */
-    private $outputDir;
-    
+    protected string $outputDir = "";
+
     /**
-     * Spojit soubory
-     * @var boolean
+     * @var bool
      */
-    private $joinFiles = true;   
-   
+    protected bool $joinFiles = true;
+
     /**
-     * Filtry
      * @var array
      */
-    private $filters = [];
-    
+    protected array $filters = [];
     /**
-     * Filtry na souborech
-     * @var array
+     * @var bool
      */
-    private $fileFilters = [];
-    
+    protected bool $checkLastModified = TRUE;
+
     /**
-     * FileCollectionInterface
-     * @var FileCollectionInterface
-     */
-    private $collection;
-    
-    /**
-     * NamingConventionInterface
-     * @var NamingConventionInterface
-     */
-    private $namingConvention;
-    
-    /**
-     * Kontrola
-     * @var boolean
-     */
-    private $checkLastModified = TRUE;
-    
-    
-    /**
-     * 
-     * @param FileCollectionInterface $files
+     * @param FileCollectionInterface $collection
      * @param NamingConventionInterface $convention
      * @param string $outputDir
+     * @throws InvalidArgumentException
      */
-    public function __construct(FileCollectionInterface $files, NamingConventionInterface $convention, $outputDir) {
-        
-        $this->collection = $files;
-        $this->namingConvention = $convention;
-        
-        $this->setOutputDir($outputDir);
+    public function __construct(protected readonly FileCollectionInterface $collection, protected readonly NamingConventionInterface $convention, string $outputDir)
+    {
+
+        $tempPath = Path::normalize(path: $outputDir);
+
+        if (!is_dir($tempPath) && !@mkdir($tempPath, 0777, true) && !is_dir($tempPath)) {
+
+            throw new InvalidArgumentException("Cant create directory '$tempPath'");
+        }
+
+        if (!is_writable($tempPath)) {
+
+            throw new InvalidArgumentException("Directory '$tempPath' is not writeable.");
+        }
+
+        $this->outputDir = $tempPath;
+
     }
-    
+
     /**
      * Create compiler with predefined css output naming convention
      * @param FileCollectionInterface $files
      * @param string $outputDir
      * @return Compiler
+     * @throws InvalidArgumentException
      */
-    public static function createCssCompiler(FileCollectionInterface $files, $outputDir) {
-        
-        return new static($files, NameConvention::createCssConvention(), $outputDir);
+    public static function createCssCompiler(FileCollectionInterface $files, string $outputDir): Compiler
+    {
+
+        return new Compiler(collection: $files, convention: NameConvention::createCssConvention(), outputDir: $outputDir);
     }
-    
+
     /**
      * Create compiler with predefined javascript output naming convention
-     * 
+     *
      * @param FileCollectionInterface $files
      * @param string $outputDir
      * @return Compiler
+     * @throws InvalidArgumentException
      */
-    public static function createJsCompiler(FileCollectionInterface $files, $outputDir) {
-        
-        return new static($files, NameConvention::createJsConvention(), $outputDir);
+    public static function createJsCompiler(FileCollectionInterface $files, string $outputDir): Compiler
+    {
+
+        return new Compiler(collection: $files, convention: NameConvention::createJsConvention(), outputDir: $outputDir);
     }
-    
+
     /**
-     * Get temp path
-     * @return string
+     * @param array|null $files
+     * @return int|mixed
      */
-    public function getOutputDir() {
-        
-        return $this->outputDir;
-    }
-    
-    /**
-     * Set temp path
-     * @param string $tempPath
-     */
-    public function setOutputDir($tempPath) {
-        
-        $tempPath = Path::normalize($tempPath);
-        
-        if (!is_dir($tempPath) && !@mkdir($tempPath, 0777, true) && !is_dir($tempPath)) {
-            
-            throw new InvalidArgumentException("Cant create directory '$tempPath'");
-        }
-        
-        if (!is_writable($tempPath)) {
-            
-            throw new InvalidArgumentException("Directory '$tempPath' is not writeable.");
-        }
-        
-        $this->outputDir = $tempPath;
-    }
-    
-    /**
-     * Get join files
-     * @return bool
-     */
-    public function getJoinFiles() {
-        
-        return $this->joinFiles;
-    }
-    
-    /**
-     * Set join files
-     * @param bool $joinFiles
-     */
-    public function setJoinFiles($joinFiles) {
-        
-        $this->joinFiles = (bool) $joinFiles;
-    }
-    
-    /**
-     * Set check last modified
-     * @param bool $checkLastModified
-     */
-    public function setCheckLastModified($checkLastModified) {
-        
-        $this->checkLastModified = (bool) $checkLastModified;
-    }
-    
-    /**
-     * Casove razitko nejnovejsiho souboru
-     * @param array $files
-     * @return int
-     */
-    public function getLastModified(array $files = null) {
-        
+    public function getLastModified(array $files = null): mixed
+    {
+
         if ($files === null) {
-            
+
             $files = $this->collection->getFiles();
         }
-        
+
         $modified = 0;
-        
+
         foreach ($files as $file) {
-            
+
             $modified = max($modified, filemtime($file));
         }
-        
+
         return $modified;
     }
-    
+
     /**
-     * Vrati obsah vsech souboru v kolekci
-     * @param array $files
-     * @return string
+     * @param array|null $files
+     * @return mixed|string
      */
-    public function getContent(array $files = null) {
-        
+    public function getContent(array $files = null): mixed
+    {
+
         if ($files === null) {
             $files = $this->collection->getFiles();
         }
-        
+
         // obsah
         $content = "";
         foreach ($files as $file) {
-            
+
             $content .= PHP_EOL . $this->loadFile($file);
         }
-        
+
         // filtry
         foreach ($this->filters as $filter) {
-            
+
             $content = call_user_func($filter, $content, $this);
         }
-        
+
         return $content;
     }
-    
+
     /**
-     * Nacist obsah a ulozit soubor
      * @param bool $ifModified
-     * @return array
+     * @return array|object[]|StdClass[]
      */
-    public function generate(bool $ifModified = true) {
-        
+    public function generate(bool $ifModified = true): array
+    {
+
         $files = $this->collection->getFiles();
-        
+
         if (!count($files)) {
-            
+
             return [];
         }
-        
+
         if ($this->joinFiles) {
-            
+
             $watch = ($this->checkLastModified ? array_unique(array_merge($files, $this->collection->getWatchFiles())) : []);
-            
+
             return [
-                
+
                 $this->generateFiles($files, $ifModified, $watch)
             ];
-            
+
         } else {
-            
+
             $arr = [];
-            
+
             foreach ($files as $file) {
-                
-                $watch = ($this->checkLastModified ? array_unique(array_merge([$file], $this->collection->getWatchFiles())) : []);               
+
+                $watch = ($this->checkLastModified ? array_unique(array_merge([$file], $this->collection->getWatchFiles())) : []);
                 $arr[] = $this->generateFiles(array($file), $ifModified, $watch);
             }
-            
+
             return $arr;
         }
     }
-    
+
     /**
-     * Generovani souboru
      * @param array $files
      * @param bool $ifModified
      * @param array $watchFiles
-     * @return \StdClass
+     * @return object
      */
-    protected function generateFiles(array $files, bool $ifModified, array $watchFiles = array()) {
-        
-        $name = $this->namingConvention->getFilename($files, $this);
+    protected function generateFiles(array $files, bool $ifModified, array $watchFiles = array()): object
+    {
+
+        $name = $this->convention->getFilename(files: $files, compiler: $this);
         $path = $this->outputDir . "/" . $name;
         $lastModified = $this->checkLastModified ? $this->getLastModified($watchFiles) : 0;
-        
+
         if (!$ifModified || !file_exists($path) || $lastModified > filemtime($path)) {
-            
+
             $outPath = in_array("safe", stream_get_wrappers()) ? "safe://" . $path : $path;
-            
+
             file_put_contents($outPath, $this->getContent($files));
         }
-        
+
         return (object) [
             "file" => $name,
             "path" => $this->outputDir,
@@ -258,103 +194,39 @@ final class Compiler {
             "source" => $files,
         ];
     }
-    
+
     /**
-     * Nacte soubor
-     * @param string $file
+     * @param $file
      * @return string
      */
-    protected function loadFile($file) {
-        
+    protected function loadFile($file): string
+    {
+
         $content = file_get_contents($file);
-        
-        foreach ($this->fileFilters as $filter) {
-            $content = call_user_func($filter, $content, $this, $file);
+
+        if($content !== false) {
+
+            return $content;
+
+        } else {
+
+            return "";
         }
-        
-        return $content;
     }
-    
+
     /**
-     * Soubory
-     * @return \Lemonade\Assets\Interfaces\FileCollectionInterface
+     * @param $filter
+     * @return void
      */
-    public function getFileCollection() {
-        
-        return $this->collection;
-    }
-    
-    /**
-     * Nazev
-     * @return \Lemonade\Assets\Interfaces\NamingConventionInterface
-     */
-    public function getOutputNamingConvention() {
-        
-        return $this->namingConvention;
-    }
-    
-    /**
-     * 
-     * @param FileCollectionInterface $collection
-     */
-    public function setFileCollection(FileCollectionInterface $collection) {
-        
-        $this->collection = $collection;
-    }
-    
-    /**
-     * 
-     * @param NamingConventionInterface $namingConvention
-     */
-    public function setOutputNamingConvention(NamingConventionInterface $namingConvention) {
-        
-        $this->namingConvention = $namingConvention;
-    }
-    
-    /**
-     * Callbacky
-     * @param callable $filter
-     * @throws InvalidArgumentException
-     */
-    public function addFilter($filter) {
-        
-        if (!is_callable($filter)) {
-            
-            throw new InvalidArgumentException('Filter is not callable.');
+    public function addFilter($filter): void
+    {
+
+        if (is_callable($filter)) {
+
+            $this->filters[] = $filter;
         }
-        
-        $this->filters[] = $filter;
+
+
     }
-        
-    /**
-     * Pridat filtr
-     * @param callable $filter
-     * @throws InvalidArgumentException
-     */
-    public function addFileFilter($filter) {
-        
-        if (!is_callable($filter)) {
-            throw new InvalidArgumentException('Filter is not callable.');
-        }
-        
-        $this->fileFilters[] = $filter;
-    }
-    
-    /**
-     * Vraci filtry
-     * @return array
-     */
-    public function getFilters() {
-        
-        return $this->filters;
-    }
-    
-    /**
-     * @return array
-     */
-    public function getFileFilters() {
-        
-        return $this->fileFilters;
-    }
-    
+
 }

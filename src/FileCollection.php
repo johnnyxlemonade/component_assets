@@ -1,172 +1,151 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace Lemonade\Assets;
 
-use Lemonade\Assets\Interfaces\FileCollectionInterface;
 use Lemonade\Assets\Exception\FileNotFoundException;
+use Lemonade\Assets\Interfaces\FileCollectionInterface;
+use SplFileInfo;
 
-final class FileCollection implements FileCollectionInterface {
-    
-    /**
-     * Root
-     * @var string
-     */
-    private $root;
-    
+final class FileCollection implements FileCollectionInterface
+{
+
     /**
      * Soubory
      * @var array
      */
-    private $files = [];
-    
+    protected array $files = [];
+
     /**
      * Sledovane soubory
      * @var array
      */
-    private $watchFiles = [];
-    
+    protected array $watchFiles = [];
+
     /**
-     * Constructor
      * @param string $root
      */
-    public function __construct(string $root = null) {
-        
-        $this->root = $root;
+    public function __construct(protected readonly string $root)
+    {
     }
-    
+
     /**
-     * 
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Interfaces\FileCollectionInterface::getRoot()
+     * @return string
      */
-    public function getRoot() {
-        
+    public function getRoot(): string
+    {
+
         return $this->root;
     }
-    
 
-    
     /**
-     * 
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Interfaces\FileCollectionInterface::addWatchFiles()
+     * @param iterable<SplFileInfo> $files
+     * @return void
      */
-    public function addWatchFiles($files) {
-        
+    public function addWatchFiles(iterable $files): void
+    {
+
         foreach ($files as $file) {
-            
+
             $this->addWatchFile($file);
         }
     }
-    
+
     /**
-     *
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Interfaces\FileCollectionInterface::addWatchFile()
+     * @param SplFileInfo $file
+     * @return void
      */
-    public function addWatchFile($file) {
-        
-        $file = $this->cannonicalizePath((string) $file);
-        
-        if($file) {
-            
+    public function addWatchFile(SplFileInfo $file): void
+    {
+
+        if (!empty($file = $this->cannonicalizePath((string) $file))) {
+
             if (!in_array($file, $this->watchFiles, true)) {
+
                 $this->watchFiles[] = $file;
             }
-            
         }
-        
+
     }
-    
+
     /**
-     * 
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Interfaces\FileCollectionInterface::getWatchFiles()
+     * @return array
      */
-    public function getWatchFiles() {
-        
+    public function getWatchFiles(): array
+    {
+
         return array_values($this->watchFiles);
     }
-    
+
     /**
-     * 
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Interfaces\FileCollectionInterface::getFiles()
+     * @return array
      */
-    public function getFiles() {
-        
+    public function getFiles(): array
+    {
+
         return array_values($this->files);
     }
-           
-    
+
     /**
-     *
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Interfaces\FileCollectionInterface::addFiles()
+     * @param array $files
+     * @return void
      */
-    public function addFiles(array $files = []) {
-        
+    public function addFiles(array $files = []): void
+    {
+
         foreach ($files as $file) {
-            
+
             $this->addFile($file);
         }
     }
-    
-    /**
-     * 
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Interfaces\FileCollectionInterface::addFile()
-     */
-    public function addFile(string $file) {
-        
-        $file = $this->cannonicalizePath((string) $file);
-        
-        if($file) {
 
-            if (!in_array($file, $this->files, TRUE)) {
+    /**
+     * @param string $file
+     * @return void
+     */
+    public function addFile(string $file): void
+    {
+
+        if (!empty($file = $this->cannonicalizePath($file))) {
+
+            if (!in_array($file, $this->files, true)) {
+
                 $this->files[] = $file;
             }
-
-        }        
-        
+        }
     }
-    
 
     /**
-     * 
-     * {@inheritDoc}
-     * @see \Lemonade\Assets\Interfaces\FileCollectionInterface::clear()
+     * @return void
      */
-    public function clear() {
-        
+    public function clear(): void
+    {
+
         $this->files = [];
         $this->watchFiles = [];
-       
+
     }
-    
-    
+
     /**
-     * 
      * @param string $path
-     * @throws FileNotFoundException
      * @return string
      */
-    public function cannonicalizePath(string $path = null) {
-        
+    public function cannonicalizePath(string $path): string
+    {
+
         $rel = Path::normalize($this->root . "/" . $path);
-        
+
         if (file_exists($rel)) {
-            
+
             return $rel;
         }
-        
+
         $abs = Path::normalize($path);
-        
+
         if (file_exists($abs)) {
-            
+
             return $abs;
         }
-        
-        return false;
+
+        return "";
     }
 }
