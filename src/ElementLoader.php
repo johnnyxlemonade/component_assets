@@ -31,7 +31,7 @@ final class ElementLoader
     public function getElement(string $source): string
     {
 
-        return (string) str_replace(search: "{source}", replace: $source, subject: match ($this->type) {
+        return str_replace(search: "{source}", replace: $source, subject: match ($this->type) {
             default => "",
             "js" => ElementLoader::_JS(),
             "css" => ElementLoader::_CSS()
