@@ -6,6 +6,32 @@ final class AssetTagBuilder
 {
 
     /**
+     * Vygeneruje více <script> tagů najednou.
+     *
+     * @param array<int, string> $paths Pole cest nebo URL k JS souborům
+     * @param string $baseUrl Základní cesta (např. "/assets/") – přidává se před relativní cesty
+     * @param string $algo Algoritmus hashování pro integrity atribut (např. "sha384")
+     * @return string Spojené HTML <script> tagy oddělené novým řádkem
+     */
+    public static function jsMultiple(array $paths, string $baseUrl = '', string $algo = 'sha384'): string
+    {
+        return self::renderMultiple($paths, [self::class, 'js'], $baseUrl, $algo);
+    }
+
+    /**
+     * Vygeneruje více <link rel="stylesheet"> tagů najednou.
+     *
+     * @param array<int, string> $paths Pole cest nebo URL k CSS souborům
+     * @param string $baseUrl Základní cesta (např. "/assets/") – přidává se před relativní cesty
+     * @param string $algo Algoritmus hashování pro integrity atribut (např. "sha384")
+     * @return string Spojené HTML <link> tagy oddělené novým řádkem
+     */
+    public static function cssMultiple(array $paths, string $baseUrl = '', string $algo = 'sha384'): string
+    {
+        return self::renderMultiple($paths, [self::class, 'css'], $baseUrl, $algo);
+    }
+
+    /**
      * Vytvoří <script> tag s volitelným atributem integrity a crossorigin.
      * Pokud je soubor externí (např. CDN), integrity se nepočítá.
      *
@@ -123,6 +149,21 @@ final class AssetTagBuilder
 EOT;
 
         return $html;
+    }
+
+    /**
+     * Interní pomocná metoda pro generování více tagů (js, css, atd.).
+     *
+     * @param array<int, string> $paths Pole cest nebo URL
+     * @param callable(string $path, string $baseUrl, string $algo): string $callback Callback metoda pro každý prvek
+     * @param string $baseUrl Základní cesta pro relativní soubory
+     * @param string $algo Algoritmus hashování integrity
+     * @return string Spojené HTML tagy oddělené novým řádkem
+     */
+    protected static function renderMultiple(array $paths, callable $callback, string $baseUrl, string $algo): string
+    {
+        $tags = array_map(fn($path) => $callback($path, $baseUrl, $algo), $paths);
+        return implode("\n", $tags);
     }
 
     /**
