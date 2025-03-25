@@ -6,6 +6,53 @@ final class AssetTagBuilder
 {
 
     /**
+     * Vygeneruje inline <script>, který dynamicky vloží externí JS soubor s automatickým výpočtem integrity.
+     *
+     * @param string $path Relativní cesta nebo URL k JS souboru
+     * @param string $baseUrl Base cesta k souboru (např. "/assets/") – přidává se před relativní cesty
+     * @param string $algo Algoritmus hashování (např. sha384)
+     * @param string $id ID skriptu (používá se jako klíč ve window)
+     * @return string Inline <script> blok, který dynamicky načte JS
+     */
+    public static function jsDynamicLoader(string $path, string $baseUrl = '', string $algo = 'sha384', string $id = 'app-loader-js'): string
+    {
+        if (Path::isExternal($path)) {
+            $src = self::appendVersionIfNeeded($path);
+            $integrity = ''; // u externích integrity nepočítáme
+        } else {
+            $src = helperVersion($baseUrl . $path);
+            $fullPath = $baseUrl . $path;
+            $integrity = self::calculateHash($fullPath, $algo);
+        }
+
+        $template = <<<JS
+
+<script data-id="Lemonade\\Assets\\JSBuilder">
+  (function(w, d, tag, id, src){
+    w[id] = w[id] || [];
+    const js = d.createElement(tag);
+    js.async = true;
+    js.src = "{source}";
+    {integrityLine}
+    d.head.appendChild(js);
+  })(window, document, "script", "{$id}", "{source}");
+</script>
+
+JS;
+
+        $integrityLine = $integrity
+            ? "js.integrity = '{$integrity}';\n    js.crossOrigin = 'anonymous';"
+            : '';
+
+        return str_replace(
+            ['{source}', '{integrityLine}'],
+            [$src, $integrityLine],
+            $template
+        );
+    }
+
+
+    /**
      * Vygeneruje více <script> tagů najednou.
      *
      * @param array<int, string> $paths Pole cest nebo URL k JS souborům
