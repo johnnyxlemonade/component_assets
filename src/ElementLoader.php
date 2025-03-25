@@ -88,14 +88,19 @@ final class ElementLoader
      */
     protected function calculateIntegrityHash(string $filePath, string $algo = 'sha384'): string
     {
-        if (!file_exists($filePath)) {
-            return '';
+        $storage = IntegrityStorage::getInstance();
+
+        if ($storage->has($filePath)) {
+            return $storage->get($filePath) ?? '';
         }
 
         $hash = base64_encode(hash_file($algo, $filePath, true));
+        $integrity = "{$algo}-{$hash}";
+        $storage->set($filePath, $integrity);
 
-        return "{$algo}-{$hash}";
+        return $integrity;
     }
+
 
     /**
      * Vrací HTML script element s volitelnou integritou.

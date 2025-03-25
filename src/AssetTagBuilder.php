@@ -4,6 +4,7 @@ namespace Lemonade\Assets;
 
 final class AssetTagBuilder
 {
+
     /**
      * Vytvoří <script> tag s volitelným atributem integrity a crossorigin.
      * Pokud je soubor externí (např. CDN), integrity se nepočítá.
@@ -139,8 +140,21 @@ EOT;
             return '';
         }
 
-        $hash = base64_encode(hash_file($algo, $absolutePath, true));
-        return "{$algo}-{$hash}";
+        $storage = IntegrityStorage::getInstance();
+        if ($storage->has($absolutePath)) {
+            return $storage->get($absolutePath) ?? '';
+        }
+
+        $rawHash = @hash_file($algo, $absolutePath, true);
+        if ($rawHash === false) {
+            return '';
+        }
+
+        $hash = base64_encode($rawHash);
+        $integrity = "{$algo}-{$hash}";
+        $storage->set($absolutePath, $integrity);
+
+        return $integrity;
     }
 
     /**
@@ -176,4 +190,5 @@ EOT;
             ? sprintf('<script%s></script>', $attrString)
             : sprintf('<%s%s>', $tag, $attrString);
     }
+
 }
