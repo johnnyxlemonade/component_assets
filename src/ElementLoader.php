@@ -73,9 +73,6 @@ final class ElementLoader
      */
     protected function getGeneratedFilePath(stdClass $file): string
     {
-        if (function_exists("base_url")) {
-            return base_url(ltrim($this->tempPath, '.') . '/' . $file->file);
-        }
 
         return '/' . ltrim($this->tempPath, './') . '/' . $file->file;
     }
