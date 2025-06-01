@@ -28,14 +28,14 @@ final class AssetTagBuilder
         $template = <<<JS
 
 <script data-id="Lemonade\\Assets\\JSBuilder">
-  (function(w, d, tag, id){
+  (function(w, d, tag, id, src){
     w[id] = w[id] || [];
     const js = d.createElement(tag);
     js.async = true;
-    js.src = "{source}";
+    js.src = src;
     {integrityLine}
     d.head.appendChild(js);
-  })(window, document, "script", "{$id}");
+  })(window, document, "script", "{$id}", "{source}");
 </script>
 
 JS;
