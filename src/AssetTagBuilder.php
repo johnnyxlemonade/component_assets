@@ -190,7 +190,7 @@ JS;
         $html = <<<EOT
 
     <!--[if (IE 9)&!(IEMobile)]>
-      <script src="https://cdn.core1.agency/static/js/ie.polyfill.min.js?v={$version}"></script>
+      <script src="https://cdn.lemonadeframework.cz/static/js/ie.polyfill.min.js?v={$version}"></script>
     <![endif]-->
 
 EOT;
