@@ -186,7 +186,7 @@ JS;
      */
     public final static function renderIeFix(): string
     {
-        $version = time(); // nebo např. definovaný ASSETS_VERSION
+        $version = \strtotime('this week monday');
         $html = <<<EOT
 
     <!--[if (IE 9)&!(IEMobile)]>
@@ -254,7 +254,18 @@ EOT;
      */
     protected static function appendVersionIfNeeded(string $url): string
     {
-        return str_contains($url, '?') ? $url : $url . '?v=' . time();
+        return str_contains($url, '?') ? $url : $url . '?v=' . self::getAssetVersion();
+    }
+
+    /**
+     * Vrací verzi assetů (timestamp začátku aktuálního týdne, pondělí 00:00:00).
+     * Využívá se pro verzování CDN souborů, aby se cache busting dělal jen jednou týdně.
+     *
+     * @return string Timestamp aktuálního týdne jako string
+     */
+    protected static function getAssetVersion(): string
+    {
+        return (string) strtotime('this week monday');
     }
 
     /**
