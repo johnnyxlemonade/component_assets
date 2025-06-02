@@ -186,7 +186,7 @@ JS;
      */
     public final static function renderIeFix(): string
     {
-        $version = \strtotime('this week monday');
+        $version = self::getAssetVersion();
         $html = <<<EOT
 
     <!--[if (IE 9)&!(IEMobile)]>
