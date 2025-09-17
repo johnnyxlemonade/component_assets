@@ -14,7 +14,13 @@ final class AssetTagBuilder
      * @param string $id ID skriptu (používá se jako klíč ve window)
      * @return string Inline <script> blok, který dynamicky načte JS
      */
-    public static function jsDynamicLoader(string $path, string $baseUrl = '', string $algo = 'sha384', string $id = 'app-loader-js'): string
+    public static function jsDynamicLoader(
+        string $path,
+        string $baseUrl = '',
+        string $algo = 'sha384',
+        string $id = 'app-loader-js',
+        ?string $nonce = null
+    ): string
     {
         if (Path::isExternal($path)) {
             $src = self::appendVersionIfNeeded($path);
@@ -27,7 +33,7 @@ final class AssetTagBuilder
 
         $template = <<<JS
 
-<script data-id="Lemonade\\Assets\\JSBuilder">
+<script data-id="Lemonade\\Assets\\JSBuilder"{nonceAttr}>
   (function(w, d, tag, id, src){
     w[id] = w[id] || [];
     const js = d.createElement(tag);
@@ -44,13 +50,14 @@ JS;
             ? "js.integrity = '{$integrity}';\n    js.crossOrigin = 'anonymous';"
             : '';
 
+        $nonceAttr = $nonce ? ' nonce="' . htmlspecialchars($nonce, ENT_QUOTES) . '"' : '';
+
         return str_replace(
-            ['{source}', '{integrityLine}'],
-            [$src, $integrityLine],
+            ['{source}', '{integrityLine}', '{nonceAttr}'],
+            [$src, $integrityLine, $nonceAttr],
             $template
         );
     }
-
 
     /**
      * Vygeneruje více <script> tagů najednou.
