@@ -2,4 +2,4 @@
 
 namespace Lemonade\Assets\Exception;
 
-class JSMinException extends AssetsException {}
+class JsException extends AssetsException {}
